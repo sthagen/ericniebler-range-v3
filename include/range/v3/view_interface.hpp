@@ -325,7 +325,6 @@ namespace ranges
             }
             /// Implicit conversion to something that looks like a container.
             template<typename Container, typename D = Derived,
-                typename = typename Container::allocator_type, // HACKHACK
                 CONCEPT_REQUIRES_(detail::ConvertibleToContainer<D, Container>())>
             operator Container ()
             {
@@ -333,7 +332,6 @@ namespace ranges
             }
             /// \overload
             template<typename Container, typename D = Derived,
-                typename = typename Container::allocator_type, // HACKHACK
                 CONCEPT_REQUIRES_(detail::ConvertibleToContainer<D const, Container>())>
             operator Container () const
             {

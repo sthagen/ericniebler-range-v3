@@ -43,6 +43,7 @@ namespace ranges
                 Range<Cont>,
                 meta::not_<View<Cont>>,
                 MoveConstructible<Cont>,
+                Constructible<Cont, std::initializer_list<range_value_type_t<Cont>>>,
                 ConvertibleTo<range_value_type_t<Rng>, range_value_type_t<Cont>>,
                 Constructible<Cont, I, I>>;
 
