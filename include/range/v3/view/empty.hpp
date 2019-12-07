@@ -14,68 +14,72 @@
 #ifndef RANGES_V3_VIEW_EMPTY_HPP
 #define RANGES_V3_VIEW_EMPTY_HPP
 
-#include <range/v3/detail/satisfy_boost_range.hpp>
 #include <range/v3/range_fwd.hpp>
-#include <range/v3/view_facade.hpp>
+
+#include <range/v3/view/interface.hpp>
+
+#include <range/v3/detail/disable_warnings.hpp>
 
 namespace ranges
 {
-    inline namespace v3
+    /// \addtogroup group-views
+    /// @{
+    template<typename T>
+    struct empty_view : view_interface<empty_view<T>, (cardinality)0>
     {
-        namespace detail
+        static_assert(std::is_object<T>::value,
+                      "The template parameter to empty_view must be an object type.");
+        empty_view() = default;
+        static constexpr T * begin() noexcept
         {
-            struct empty_view_base
-            {
-                template<typename T>
-                friend constexpr T *begin(empty_view<T>) noexcept
-                {
-                    return nullptr;
-                }
-                template<typename T>
-                friend constexpr T *end(empty_view<T>) noexcept
-                {
-                    return nullptr;
-                }
-            };
+            return nullptr;
         }
+        static constexpr T * end() noexcept
+        {
+            return nullptr;
+        }
+        static constexpr std::size_t size() noexcept
+        {
+            return 0u;
+        }
+        static constexpr T * data() noexcept
+        {
+            return nullptr;
+        }
+        RANGES_DEPRECATED(
+            "Replace views::empty<T>() with views::empty<>. "
+            "It is now a variable template.")
+        empty_view operator()() const
+        {
+            return *this;
+        }
+    };
 
+    template<typename T>
+    RANGES_INLINE_VAR constexpr bool enable_safe_range<empty_view<T>> = true;
+
+    namespace views
+    {
         template<typename T>
-        struct empty_view
-          : view_interface<empty_view<T>, (cardinality)0>
-          , private detail::empty_view_base
-        {
-            static_assert(std::is_object<T>::value,
-                "The template parameter to empty_view must be an object type.");
-            empty_view() = default;
-            constexpr static T *begin() noexcept
-            {
-                return nullptr;
-            }
-            constexpr static T *end() noexcept
-            {
-                return nullptr;
-            }
-            static constexpr std::size_t size() noexcept
-            {
-                return 0u;
-            }
-            static constexpr T *data() noexcept
-            {
-                return nullptr;
-            }
-        };
-
-        namespace view
-        {
-            template<typename T>
-            empty_view<T> empty()
-            {
-                return {};
-            }
-        }
+        RANGES_INLINE_VAR constexpr empty_view<T> empty{};
     }
-}
 
-RANGES_SATISFY_BOOST_RANGE(::ranges::v3::empty_view)
+    namespace cpp20
+    {
+        namespace views
+        {
+            using ranges::views::empty;
+        }
+        CPP_template(typename T)(              //
+            requires std::is_object<T>::value) //
+            using empty_view = ranges::empty_view<T>;
+    } // namespace cpp20
+
+    /// @}
+} // namespace ranges
+
+#include <range/v3/detail/reenable_warnings.hpp>
+#include <range/v3/detail/satisfy_boost_range.hpp>
+RANGES_SATISFY_BOOST_RANGE(::ranges::empty_view)
 
 #endif

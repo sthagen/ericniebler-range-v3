@@ -21,7 +21,6 @@ ranges_append_flag(RANGES_HAS_WNO_MISSING_VARIABLE_DECLARATIONS -Wno-missing-var
 ranges_append_flag(RANGES_HAS_WNO_DOCUMENTATION -Wno-documentation)
 ranges_append_flag(RANGES_HAS_WNO_DOCUMENTATION_UNKNOWN_COMMAND -Wno-documentation-unknown-command)
 ranges_append_flag(RANGES_HAS_WNO_OLD_STYLE_CAST -Wno-old-style-cast)
-ranges_append_flag(RANGES_HAS_WNO_SHADOW -Wno-shadow)
 
 if (RANGES_ENV_MACOSX)
   ranges_append_flag(RANGES_HAS_WNO_GLOBAL_CONSTRUCTORS -Wno-global-constructors)
@@ -40,5 +39,5 @@ if (RANGES_CXX_COMPILER_GCC)
 endif()
 
 if (RANGES_VERBOSE_BUILD)
-  message("[range-v3]: test C++ flags: ${CMAKE_CXX_FLAGS}")
+  message(STATUS "[range-v3]: test C++ flags: ${CMAKE_CXX_FLAGS}")
 endif()
