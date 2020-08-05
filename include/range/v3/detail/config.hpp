@@ -215,6 +215,7 @@ namespace ranges
 #define RANGES_DIAGNOSTIC_IGNORE_MULTIPLE_ASSIGNMENT_OPERATORS \
     RANGES_DIAGNOSTIC_IGNORE(4522)
 #define RANGES_DIAGNOSTIC_IGNORE_VOID_PTR_DEREFERENCE
+#define RANGES_DIAGNOSTIC_KEYWORD_MACRO
 
 #define RANGES_CXX_VER _MSVC_LANG
 
@@ -222,7 +223,7 @@ namespace ranges
 #error range-v3 requires Visual Studio 2019 with the /std:c++17 (or /std:c++latest) and /permissive- options.
 #endif
 
-#if _MSC_VER < 1926
+#if _MSC_VER < 1927
 #define RANGES_WORKAROUND_MSVC_895622 // Error when phase 1 name binding finds only
                                       // deleted function
 
@@ -328,6 +329,7 @@ namespace ranges
 #define RANGES_DIAGNOSTIC_IGNORE_MULTIPLE_ASSIGNMENT_OPERATORS
 #define RANGES_DIAGNOSTIC_IGNORE_VOID_PTR_DEREFERENCE \
     RANGES_DIAGNOSTIC_IGNORE("-Wvoid-ptr-dereference")
+#define RANGES_DIAGNOSTIC_KEYWORD_MACRO RANGES_DIAGNOSTIC_IGNORE("-Wkeyword-macro")
 
 #define RANGES_WORKAROUND_CWG_1554
 #ifdef __clang__
@@ -344,9 +346,6 @@ namespace ranges
 #define RANGES_WORKAROUND_GCC_91525 /* Workaround strange GCC ICE */
 #endif
 #if __GNUC__ >= 9
-#ifdef __cpp_concepts
-#define RANGES_WORKAROUND_GCC_89953 // ICE in nothrow_spec_p, at cp/except.c:1244
-#endif
 #if __GNUC__ == 9 && __GNUC_MINOR__ < 3 && __cplusplus == RANGES_CXX_STD_17
 #define RANGES_WORKAROUND_GCC_91923 // Failure-to-SFINAE with class type NTTP in C++17
 #endif
@@ -380,6 +379,7 @@ namespace ranges
 #define RANGES_DIAGNOSTIC_IGNORE_TRUNCATION
 #define RANGES_DIAGNOSTIC_IGNORE_MULTIPLE_ASSIGNMENT_OPERATORS
 #define RANGES_DIAGNOSTIC_IGNORE_VOID_PTR_DEREFERENCE
+#define RANGES_DIAGNOSTIC_KEYWORD_MACRO
 #endif
 
 // Configuration via feature-test macros, with fallback to __cplusplus
@@ -520,9 +520,18 @@ namespace ranges
 // #endif
 
 #ifndef RANGES_CXX_COROUTINES
-#ifdef __cpp_coroutines
+#if defined(__cpp_coroutines) && defined(__has_include)
+#if __has_include(<coroutine>)
 #define RANGES_CXX_COROUTINES __cpp_coroutines
-#else
+#define RANGES_COROUTINES_HEADER <coroutine>
+#define RANGES_COROUTINES_NS std
+#elif __has_include(<experimental/coroutine>)
+#define RANGES_CXX_COROUTINES __cpp_coroutines
+#define RANGES_COROUTINES_HEADER <experimental/coroutine>
+#define RANGES_COROUTINES_NS std::experimental
+#endif
+#endif
+#ifndef RANGES_CXX_COROUTINES
 #define RANGES_CXX_COROUTINES RANGES_CXX_FEATURE(COROUTINES)
 #endif
 #endif

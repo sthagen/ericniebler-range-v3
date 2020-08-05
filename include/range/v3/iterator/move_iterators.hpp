@@ -22,7 +22,7 @@
 #include <range/v3/iterator/concepts.hpp>
 #include <range/v3/iterator/traits.hpp>
 
-#include <range/v3/detail/disable_warnings.hpp>
+#include <range/v3/detail/prologue.hpp>
 
 namespace ranges
 {
@@ -46,14 +46,14 @@ namespace ranges
         explicit move_iterator(I i)
           : current_(i)
         {}
-        template<typename O>
-        CPP_ctor(move_iterator)(move_iterator<O> const & i)( //
-            requires convertible_to<O, I>)
+        template(typename O)( //
+            requires convertible_to<O, I>) //
+        move_iterator(move_iterator<O> const & i)
           : current_(i.base())
         {}
-        template<typename O>
-        auto operator=(move_iterator<O> const & i) -> CPP_ret(move_iterator &)( //
-            requires convertible_to<O, I>)
+        template(typename O)( //
+            requires convertible_to<O, I>) //
+        move_iterator & operator=(move_iterator<O> const & i)
         {
             current_ = i.base();
             return *this;
@@ -75,59 +75,68 @@ namespace ranges
             return *this;
         }
         CPP_member
-        auto operator++(int) -> CPP_ret(void)( //
-            requires(!forward_iterator<I>))
+        auto operator++(int) //
+            -> CPP_ret(void)( //
+                requires (!forward_iterator<I>))
         {
             ++current_;
         }
         CPP_member
-        auto operator++(int) -> CPP_ret(move_iterator)( //
-            requires forward_iterator<I>)
+        auto operator++(int) //
+            -> CPP_ret(move_iterator)( //
+                requires forward_iterator<I>)
         {
             return move_iterator(current_++);
         }
         CPP_member
-        auto operator--() -> CPP_ret(move_iterator &)( //
-            requires forward_iterator<I>)
+        auto operator--() //
+            -> CPP_ret(move_iterator &)( //
+                requires forward_iterator<I>)
         {
             --current_;
             return *this;
         }
         CPP_member
-        auto operator--(int) -> CPP_ret(move_iterator)( //
-            requires bidirectional_iterator<I>)
+        auto operator--(int) //
+            -> CPP_ret(move_iterator)( //
+                requires bidirectional_iterator<I>)
         {
             return move_iterator(current_--);
         }
         CPP_member
-        auto operator+(difference_type n) const -> CPP_ret(move_iterator)( //
-            requires random_access_iterator<I>)
+        auto operator+(difference_type n) const //
+            -> CPP_ret(move_iterator)( //
+                requires random_access_iterator<I>)
         {
             return move_iterator(current_ + n);
         }
         CPP_member
-        auto operator+=(difference_type n) -> CPP_ret(move_iterator &)( //
-            requires random_access_iterator<I>)
+        auto operator+=(difference_type n)
+            -> CPP_ret(move_iterator &)( //
+                requires random_access_iterator<I>)
         {
             current_ += n;
             return *this;
         }
         CPP_member
-        auto operator-(difference_type n) const -> CPP_ret(move_iterator)( //
-            requires random_access_iterator<I>)
+        auto operator-(difference_type n) const //
+            -> CPP_ret(move_iterator)( //
+                requires random_access_iterator<I>)
         {
             return move_iterator(current_ - n);
         }
         CPP_member
-        auto operator-=(difference_type n) -> CPP_ret(move_iterator &)( //
-            requires random_access_iterator<I>)
+        auto operator-=(difference_type n) //
+            -> CPP_ret(move_iterator &)( //
+                requires random_access_iterator<I>)
         {
             current_ -= n;
             return *this;
         }
         CPP_member
-        auto operator[](difference_type n) const -> CPP_ret(reference)( //
-            requires random_access_iterator<I>)
+        auto operator[](difference_type n) const //
+            -> CPP_ret(reference)( //
+                requires random_access_iterator<I>)
         {
             return iter_move(current_ + n);
         }
@@ -194,9 +203,9 @@ namespace ranges
 
     struct make_move_iterator_fn
     {
-        template<typename I>
-        constexpr auto operator()(I it) const -> CPP_ret(move_iterator<I>)( //
-            requires input_iterator<I>)
+        template(typename I)( //
+            requires input_iterator<I>) //
+        constexpr move_iterator<I> operator()(I it) const
         {
             return move_iterator<I>{detail::move(it)};
         }
@@ -217,14 +226,14 @@ namespace ranges
         constexpr explicit move_sentinel(S s)
           : sent_(detail::move(s))
         {}
-        template<typename OS>
-        constexpr explicit CPP_ctor(move_sentinel)(move_sentinel<OS> const & that)( //
-            requires convertible_to<OS, S>)
+        template(typename OS)( //
+            requires convertible_to<OS, S>) //
+        constexpr explicit move_sentinel(move_sentinel<OS> const & that)
           : sent_(that.base())
         {}
-        template<typename OS>
-        auto operator=(move_sentinel<OS> const & that) -> CPP_ret(move_sentinel &)( //
-            requires convertible_to<OS, S>)
+        template(typename OS)( //
+            requires convertible_to<OS, S>) //
+        move_sentinel & operator=(move_sentinel<OS> const & that)
         {
             sent_ = that.base();
             return *this;
@@ -266,16 +275,16 @@ namespace ranges
 
     struct make_move_sentinel_fn
     {
-        template<typename I>
-        constexpr auto operator()(I i) const -> CPP_ret(move_iterator<I>)( //
-            requires input_iterator<I>)
+        template(typename I)( //
+            requires input_iterator<I>) //
+        constexpr move_iterator<I> operator()(I i) const
         {
             return move_iterator<I>{detail::move(i)};
         }
 
-        template<typename S>
-        constexpr auto operator()(S s) const -> CPP_ret(move_sentinel<S>)( //
-            requires semiregular<S> && (!input_iterator<S>))
+        template(typename S)( //
+            requires semiregular<S> AND (!input_iterator<S>)) //
+        constexpr move_sentinel<S> operator()(S s) const
         {
             return move_sentinel<S>{detail::move(s)};
         }
@@ -298,7 +307,8 @@ namespace ranges
         };
 
         template<typename I>
-        using move_into_cursor_types = move_into_cursor_types_<I, (bool)readable<I>>;
+        using move_into_cursor_types =
+            move_into_cursor_types_<I, (bool)indirectly_readable<I>>;
 
         template<typename I>
         struct move_into_cursor : move_into_cursor_types<I>
@@ -311,10 +321,10 @@ namespace ranges
                 #ifndef _MSC_VER
                 using basic_mixin<move_into_cursor>::basic_mixin;
                 #else
-                explicit constexpr mixin(move_into_cursor && cur)
+                constexpr explicit mixin(move_into_cursor && cur)
                   : basic_mixin<move_into_cursor>(static_cast<move_into_cursor &&>(cur))
                 {}
-                explicit constexpr mixin(move_into_cursor const & cur)
+                constexpr explicit mixin(move_into_cursor const & cur)
                   : basic_mixin<move_into_cursor>(cur)
                 {}
                 #endif
@@ -336,56 +346,57 @@ namespace ranges
             {
                 ++it_;
             }
-            template<typename T>
-            auto write(T && t) noexcept(noexcept(*it_ = std::move(t)))
-                -> CPP_ret(void)( //
-                    requires writable<I, aux::move_t<T>>)
+            template(typename T)( //
+                requires indirectly_writable<I, aux::move_t<T>>) //
+            void write(T && t) noexcept(noexcept(*it_ = std::move(t)))
             {
                 *it_ = std::move(t);
             }
-            template<typename T>
-            auto write(T && t) const noexcept(noexcept(*it_ = std::move(t)))
-                -> CPP_ret(void)( //
-                    requires writable<I, aux::move_t<T>>)
+            template(typename T)( //
+                requires indirectly_writable<I, aux::move_t<T>>) //
+            void write(T && t) const noexcept(noexcept(*it_ = std::move(t)))
             {
                 *it_ = std::move(t);
             }
             CPP_member
             auto read() const noexcept(noexcept(*std::declval<I const &>()))
                 -> CPP_ret(iter_reference_t<I>)( //
-                    requires readable<I>)
+                    requires indirectly_readable<I>)
             {
                 return *it_;
             }
             CPP_member
-            auto equal(move_into_cursor const & that) const -> CPP_ret(bool)( //
-                requires input_iterator<I>)
+            auto equal(move_into_cursor const & that) const //
+                -> CPP_ret(bool)( //
+                    requires input_iterator<I>)
             {
                 return it_ == that.it_;
             }
             CPP_member
-            auto prev() -> CPP_ret(void)( //
-                requires bidirectional_iterator<I>)
+            auto prev() //
+                -> CPP_ret(void)( //
+                    requires bidirectional_iterator<I>)
             {
                 --it_;
             }
             CPP_member
-            auto advance(iter_difference_t<I> n) -> CPP_ret(void)( //
-                requires random_access_iterator<I>)
+            auto advance(iter_difference_t<I> n) //
+                -> CPP_ret(void)( //
+                    requires random_access_iterator<I>)
             {
                 it_ += n;
             }
             CPP_member
-            auto distance_to(move_into_cursor const & that) const
+            auto distance_to(move_into_cursor const & that) const //
                 -> CPP_ret(iter_difference_t<I>)( //
                     requires sized_sentinel_for<I, I>)
             {
                 return that.it_ - it_;
             }
-            template<typename II = I const>
-            constexpr auto move() const noexcept(has_nothrow_iter_move_v<II>)
-                -> CPP_ret(iter_rvalue_reference_t<II>)( //
-                    requires same_as<I const, II> && readable<II>)
+            template(typename II = I const)( //
+                requires same_as<I const, II> AND indirectly_readable<II>) //
+            constexpr iter_rvalue_reference_t<II> move() const //
+                noexcept(has_nothrow_iter_move_v<II>)
             {
                 return iter_move(it_);
             }
@@ -437,6 +448,6 @@ namespace std
 RANGES_DIAGNOSTIC_POP
 /// \endcond
 
-#include <range/v3/detail/reenable_warnings.hpp>
+#include <range/v3/detail/epilogue.hpp>
 
 #endif // RANGES_V3_ITERATOR_MOVE_ITERATORS_HPP

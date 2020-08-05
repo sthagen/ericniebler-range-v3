@@ -9,6 +9,7 @@
 //
 // Project home: https://github.com/ericniebler/range-v3
 
+#include <algorithm>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -28,10 +29,26 @@
 #include <range/v3/view/move.hpp>
 #include <range/v3/view/stride.hpp>
 #include <range/v3/view/take_while.hpp>
+#include <range/v3/view/take.hpp>
 #include <range/v3/view/zip.hpp>
 #include <range/v3/view/zip_with.hpp>
 #include "../simple_test.hpp"
 #include "../test_utils.hpp"
+
+#if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201911
+// See https://github.com/ericniebler/range-v3/issues/1480
+void test_bug1480()
+{
+    std::vector<char> const first{};
+    std::vector<char> const second{};
+
+    auto zip_view = ::ranges::views::zip(first, second);
+    auto fn = [&] ([[maybe_unused]] auto && ch)
+    {
+    };
+    std::ranges::for_each(zip_view, fn);
+}
+#endif
 
 int main()
 {
@@ -62,6 +79,7 @@ int main()
             range_rvalue_reference_t<Rng>>);
         CPP_assert(input_iterator<decltype(begin(rng))>);
         CPP_assert(!forward_iterator<decltype(begin(rng))>);
+        has_cardinality<cardinality::finite>(rng);
         auto expected = to_vector(rng);
         ::check_equal(expected, {V{0, "hello", "john"},
                                  V{1, "goodbye", "paul"},
@@ -79,6 +97,7 @@ int main()
         CPP_assert(!common_range<decltype(rng)>);
         CPP_assert(input_iterator<decltype(begin(rng))>);
         CPP_assert(!forward_iterator<decltype(begin(rng))>);
+        has_cardinality<cardinality::finite>(rng);
         std::vector<V> expected;
         copy(rng, ranges::back_inserter(expected));
         ::check_equal(expected, {V{0, "hello", "john"},
@@ -94,6 +113,7 @@ int main()
     CPP_assert(common_range<decltype(rnd_rng)>);
     CPP_assert(sized_range<decltype(rnd_rng)>);
     CPP_assert(random_access_iterator<decltype(begin(rnd_rng))>);
+    has_cardinality<cardinality::finite>(rnd_rng);
     auto tmp = cbegin(rnd_rng) + 3;
     CHECK(std::get<0>(*tmp) == 3);
     CHECK(std::get<1>(*tmp) == "goodbye");
@@ -153,7 +173,7 @@ int main()
         auto rng = views::zip(v, v);
         using Rng = decltype(rng);
         using I = iterator_t<Rng>;
-        CPP_assert(readable<I>);
+        CPP_assert(indirectly_readable<I>);
         CPP_assert(same_as<
             range_value_t<Rng>,
             std::pair<MoveOnlyString, MoveOnlyString>>);
@@ -225,6 +245,7 @@ int main()
             debug_input_view<int const>{i2}
         );
         using P = std::pair<int, int>;
+        has_cardinality<cardinality::finite>(rng);
         ::check_equal(rng, {P{0,4},P{1,5}, P{2,6}, P{3,7}});
     }
 
@@ -234,7 +255,7 @@ int main()
         using R = decltype(rng);
         CPP_assert(same_as<range_value_t<R>, std::tuple<>>);
         CPP_assert(contiguous_range<R>);
-        static_assert(ranges::range_cardinality<R>::value == ranges::cardinality(0), "");
+        has_cardinality<cardinality(0)>(rng);
         CHECK(ranges::begin(rng) == ranges::end(rng));
         CHECK(ranges::size(rng) == 0u);
     }
@@ -250,6 +271,33 @@ int main()
             ), true_)));
         CHECK(::is_dangling(ranges::find_if(views::zip(
             vi | views::filter(true_)), true_)));
+    }
+
+    {
+        // test zip with infinite range
+        int const i1[] = {0,1,2,3};
+        auto rng = views::zip(i1, views::iota(4));
+
+        has_cardinality<cardinality(4)>(rng);
+        using P = std::pair<int, int>;
+        ::check_equal(rng, {P{0,4},P{1,5}, P{2,6}, P{3,7}});
+    }
+
+    {
+        // test zip with infinite ranges only
+        auto rng = views::zip(views::iota(0), views::iota(4));
+
+        has_cardinality<cardinality::infinite>(rng);
+        using P = std::pair<int, int>;
+        ::check_equal(rng | views::take(4), {P{0,4},P{1,5}, P{2,6}, P{3,7}});
+    }
+
+    {
+        // test unknown cardinality
+        std::stringstream str{};
+        auto rng = views::zip(istream<std::string>(str));
+
+        has_cardinality<cardinality::unknown>(rng);
     }
 
     return test_result();

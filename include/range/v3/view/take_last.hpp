@@ -23,7 +23,7 @@
 #include <range/v3/range/operations.hpp>
 #include <range/v3/view/drop_exactly.hpp>
 
-#include <range/v3/detail/disable_warnings.hpp>
+#include <range/v3/detail/prologue.hpp>
 
 namespace ranges
 {
@@ -31,9 +31,9 @@ namespace ranges
     {
         struct take_last_base_fn
         {
-            template<typename Rng>
-            auto CPP_fun(operator())(Rng && rng, range_difference_t<Rng> n)(
-                const requires viewable_range<Rng> && sized_range<Rng>)
+            template(typename Rng)( //
+                requires viewable_range<Rng> AND sized_range<Rng>)
+            auto operator()(Rng && rng, range_difference_t<Rng> n) const
             {
                 auto sz = ranges::distance(rng);
                 return drop_exactly(static_cast<Rng &&>(rng), sz > n ? sz - n : 0);
@@ -44,9 +44,9 @@ namespace ranges
         {
             using take_last_base_fn::operator();
 
-            template<typename Int>
-            constexpr auto CPP_fun(operator())(Int n)(const //
-                                                      requires detail::integer_like_<Int>)
+            template(typename Int)( //
+                requires detail::integer_like_<Int>)
+            constexpr auto operator()(Int n) const
             {
                 return make_view_closure(bind_back(take_last_base_fn{}, n));
             }
@@ -59,6 +59,6 @@ namespace ranges
     /// @}
 } // namespace ranges
 
-#include <range/v3/detail/reenable_warnings.hpp>
+#include <range/v3/detail/epilogue.hpp>
 
 #endif
