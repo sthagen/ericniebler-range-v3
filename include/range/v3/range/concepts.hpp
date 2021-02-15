@@ -14,12 +14,14 @@
 #ifndef RANGES_V3_RANGE_CONCEPTS_HPP
 #define RANGES_V3_RANGE_CONCEPTS_HPP
 
+#include <range/v3/detail/config.hpp>
+
 #include <initializer_list>
 #include <type_traits>
 #include <utility>
 
 #ifdef __has_include
-#if __has_include(<span>)
+#if __has_include(<span>) && !defined(RANGES_WORKAROUND_MSVC_UNUSABLE_SPAN)
 #include <span>
 #endif
 #if __has_include(<string_view>)
@@ -44,7 +46,7 @@
 
 namespace ranges
 {
-    /// \addtogroup group-range
+    /// \addtogroup group-range-concepts
     /// @{
 
     ///
@@ -183,20 +185,23 @@ namespace ranges
     RANGES_INLINE_VAR constexpr bool enable_view =
         ext::enable_view<T>::value;
 
-#if defined(__cpp_lib_string_view) && __cpp_lib_string_view > 0
+#if defined(__cpp_lib_string_view) && __cpp_lib_string_view >= 201606L
     template<typename Char, typename Traits>
     RANGES_INLINE_VAR constexpr bool enable_view<std::basic_string_view<Char, Traits>> =
         true;
 #endif
 
-#if defined(__cpp_lib_span) && __cpp_lib_span > 0
+// libstdc++'s <span> header only defines std::span when concepts
+// are also enabled. https://gcc.gnu.org/bugzilla/show_bug.cgi?id=97869
+#if defined(__cpp_lib_span) && __cpp_lib_span >= 202002L && \
+    (!defined(__GLIBCXX__) || defined(__cpp_lib_concepts))
     template<typename T, std::size_t N>
     RANGES_INLINE_VAR constexpr bool enable_view<std::span<T, N>> = N + 1 < 2;
 #endif
 
-    ///
-    /// View concepts below
-    ///
+    //
+    // View concepts below
+    //
 
     // clang-format off
     template<typename T>

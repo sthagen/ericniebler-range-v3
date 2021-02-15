@@ -100,10 +100,11 @@ namespace ranges
                 if(current_ != ranges::end(rng->base_))
                     sum_ = *current_;
             }
-            template(bool Other)( //
+            template(bool Other)(
+                /// \pre
                 requires IsConst AND CPP_NOT(Other) AND
                 convertible_to<iterator_t<Rng> const &,
-                               iterator_t<Base>>) //
+                               iterator_t<Base>>)
             constexpr cursor(cursor<Other> const & that)
               : parent_{that.parent_}
               , current_(that.current_)
@@ -130,7 +131,7 @@ namespace ranges
             {
                 return current_ == ranges::end(parent_->base_);
             }
-            CPP_member
+            CPP_auto_member
             constexpr bool CPP_fun(equal)(cursor const & that)(const //
                 requires equality_comparable<iterator_t<Base>>)
             {
@@ -143,8 +144,9 @@ namespace ranges
         {
             return cursor<false>{this};
         }
-        template(typename CRng = Rng const)( //
-            requires detail::partial_sum_view_constraints<CRng, Fun const>) //
+        template(typename CRng = Rng const)(
+            /// \pre
+            requires detail::partial_sum_view_constraints<CRng, Fun const>)
         constexpr cursor<true> begin_cursor() const
         {
             return cursor<true>{this};
@@ -158,13 +160,14 @@ namespace ranges
           : base_(std::move(rng))
           , fun_(std::move(fun))
         {}
-        CPP_member
-        constexpr auto CPP_fun(size)()( //
+        CPP_auto_member
+        constexpr auto CPP_fun(size)()(
+            /// \pre
             requires sized_range<Rng>)
         {
             return ranges::size(base_);
         }
-        CPP_member
+        CPP_auto_member
         constexpr auto CPP_fun(size)()(const //
             requires sized_range<Rng const>)
         {
@@ -173,7 +176,8 @@ namespace ranges
     };
 
 #if RANGES_CXX_DEDUCTION_GUIDES >= RANGES_CXX_DEDUCTION_GUIDES_17
-    template(typename Rng, typename Fun)( //
+    template(typename Rng, typename Fun)(
+        /// \pre
         requires copy_constructible<Fun>)
     partial_sum_view(Rng &&, Fun)
         -> partial_sum_view<views::all_t<Rng>, Fun>;
@@ -183,8 +187,9 @@ namespace ranges
     {
         struct partial_sum_base_fn
         {
-            template(typename Rng, typename Fun = plus)( //
-                requires detail::partial_sum_view_constraints<all_t<Rng>, Fun>) //
+            template(typename Rng, typename Fun = plus)(
+                /// \pre
+                requires detail::partial_sum_view_constraints<all_t<Rng>, Fun>)
             constexpr partial_sum_view<all_t<Rng>, Fun> //
             operator()(Rng && rng, Fun fun = {}) const
             {
@@ -196,7 +201,8 @@ namespace ranges
         {
             using partial_sum_base_fn::operator();
 
-            template(typename Fun)( //
+            template(typename Fun)(
+                /// \pre
                 requires (!range<Fun>))
             constexpr auto operator()(Fun && fun) const
             {

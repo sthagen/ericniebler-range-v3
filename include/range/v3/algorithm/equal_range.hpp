@@ -42,9 +42,10 @@ namespace ranges
                  typename S,
                  typename V,
                  typename C = less,
-                 typename P = identity)( //
+                 typename P = identity)(
+            /// \pre
             requires forward_iterator<I> AND sentinel_for<S, I> AND
-                indirect_strict_weak_order<C, V const *, projected<I, P>>) //
+                indirect_strict_weak_order<C, V const *, projected<I, P>>)
         subrange<I> RANGES_FUNC(equal_range)(
             I first, S last, V const & val, C pred = C{}, P proj = P{})
         {
@@ -100,10 +101,11 @@ namespace ranges
         }
 
         /// \overload
-        template(typename Rng, typename V, typename C = less, typename P = identity)( //
+        template(typename Rng, typename V, typename C = less, typename P = identity)(
+            /// \pre
             requires forward_range<Rng> AND
                 indirect_strict_weak_order<C, V const *, projected<iterator_t<Rng>, P>>)
-        safe_subrange_t<Rng> //
+        borrowed_subrange_t<Rng> //
         RANGES_FUNC(equal_range)(Rng && rng, V const & val, C pred = C{}, P proj = P{}) //
         {
             if(RANGES_CONSTEXPR_IF(sized_range<Rng>))
